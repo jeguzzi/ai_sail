@@ -1,0 +1,1 @@
+openocd -f interface/ftdi/olimex-arm-usb-ocd-h.cfg  -f board/esp-wroom-32.cfg -c "adapter_khz 1000" -c "program_esp32 build/partitions_singleapp.bin 0x8000 verify"  -c "program_esp32 build/bootloader/bootloader.bin 0x1000 verify" -c "program_esp32 build/streamer.bin 0x10000 verify reset exit"

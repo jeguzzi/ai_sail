@@ -1,0 +1,53 @@
+{% macro typedef(data_t) %}
+typedef struct {
+{%- for name, type in data_t.__annotations__.items() %}
+  {{type | c}} {{name}};
+{%- endfor %}
+} __attribute__((packed)) {{data_t.typename}};
+{% endmacro %}
+
+{% macro log(data_t) %}
+void log_{{data_t.name}}({{data_t.typename}} *value)
+{
+  DEBUG_PRINT("{{data_t.__annotations__.items() | map('f') | join(', ')}}\n", value->{{data_t.__annotations__.keys() | join(', value->')}});
+}
+{% endmacro %}
+
+{% macro value(data_t) %}
+static struct {
+  {{data_t.typename}} value, dvalue;
+  const char *header;
+} {{data_t.value}} = { .header= "{{data_t.header_value | safe}}" };
+{% endmacro %}
+
+{% macro param(data_t) %}
+{%- for name, type in data_t.__annotations__.items() %}
+PARAM_ADD(PARAM_{{type | cf}}, {{name}}, &({{data_t.value}}.value.{{name}}))
+{%- endfor -%}
+{% endmacro %}
+
+{% macro cb(data_t) %}
+static void {{data_t.cb}}(void *buffer)
+{
+  {{data_t.typename}} *value = ({{data_t.typename}} *)buffer;
+  {%- if data_t is not config %}
+  {{data_t.set_cb}}(value);
+  {%- else %}
+  {{data_t.value}}.value = {{data_t.value}}.dvalue = *value;
+  DEBUG_PRINT("GAP has updated {{data_t.name}} config\n");
+  log_{{data_t.name}}(&({{data_t.value}}.value));
+  {%- endif %}
+}
+{% endmacro %}
+
+{% macro check(data_t) %}
+if(memcmp(&({{data_t.value}}.value), &({{data_t.value}}.dvalue), sizeof({{data_t.typename}})))
+{
+  DEBUG_PRINT("Will request GAP to update {{data_t.name}} config\n");
+  log_{{data_t.name}}(&({{data_t.value}}.value));
+  uart1SendData(HEADER_LENGTH, (uint8_t *) {{data_t.value}}.header);
+  uart1SendData(sizeof({{data_t.typename}}), (uint8_t *)&({{data_t.value}}.value));
+  {{data_t.value}}.dvalue = {{data_t.value}}.value;
+  return;
+}
+{% endmacro %}

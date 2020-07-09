@@ -1,0 +1,50 @@
+{%- from "macros.j2" import typedef, log, value, cb, check, param  -%}
+/*
+  This file was autogenerate on {{date}} from the following Python config:
+
+  {{source | indent(2)}}
+*/
+
+#define HEADER_LENGTH {{config.header_length}}
+#define INPUT_NUMBER {{ (config.inputs + config.configs) | count}}
+
+typedef struct {
+  const char *header;
+  uint8_t size;
+  void (*callback)(void *);
+  bool valid;
+} input_t;
+
+{%- for data_t in config.configs %}
+// --- config {{data_t.name}}
+{{ typedef(data_t) }}
+{{ log(data_t) }}
+{{- value(data_t) -}}
+{{- cb(data_t) -}}
+{% endfor -%}
+
+{%- for data_t in  config.inputs %}
+// --- input {{data_t.name}}
+{{ typedef(data_t) }}
+{{ log(data_t) }}
+// To be implemented
+static void {{data_t.set_cb}}({{data_t.typename}} *);
+{{- cb(data_t) -}}
+{% endfor -%}
+
+static input_t config.inputs[INPUT_NUMBER]  = {
+  {{(config.configs + config.inputs) | map('input') | join(",\n") | indent(2)}}
+};
+void update_config(void *data)
+{
+{%- for data_t in config.configs -%}
+  {{- check(data_t) | indent(2) -}}
+{%- endfor %}
+}
+{% for group, cs in config.configs | groupby('group') %}
+PARAM_GROUP_START({{group}})
+{%- for data_t in cs -%}
+{{- param(data_t) -}}
+{%- endfor %}
+PARAM_GROUP_STOP({{group}})
+{% endfor %}

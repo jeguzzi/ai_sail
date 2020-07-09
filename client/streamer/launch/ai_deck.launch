@@ -1,0 +1,11 @@
+<launch>
+
+  <arg name="pipe" default=""/>
+  <arg name="host" default="192.168.201.40"/>
+
+  <node required="true" pkg="ai_sail_stream_receiver" name="himax" type="ros_node.py" output="screen">
+    <param name="pipe" value="$(arg pipe)"/>
+    <param name="host" value="$(arg host)"/>
+  </node>
+
+</launch>

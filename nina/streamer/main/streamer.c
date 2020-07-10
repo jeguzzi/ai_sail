@@ -98,20 +98,23 @@
 #define SLEEP_AFTER_BOOT
 // #define SLEEP_IF_INACTIVE
 // #define SLEEP_IF_GPIO_LOW
-/* The GAP is connected also on a GPIO  (there is another one too)*/
+/* The GAP is connected also on a GPIO  (there is another one too) */
 #define GAP_GPIO_IN 2
+
+/* Log tag for printouts */
+static const char *TAG = "streamer";
 
 // If we are of no use, better to sleep and spare energy
 void go_to_sleep()
 {
   if(!rtc_gpio_is_valid_gpio(GAP_GPIO_IN))
   {
-    ESP_LOGE("GPIO %d cannot be used to wake up NINA.", GAP_GPIO_IN);
+    ESP_LOGE(TAG, "GPIO %d cannot be used to wake up NINA.", GAP_GPIO_IN);
     return;
   }
   esp_sleep_enable_ext0_wakeup(GAP_GPIO_IN, 1);
   esp_wifi_stop();
-  ESP_LOGI("Going to deep sleep ... will wait for reboot or high on pin %d", GAP_GPIO_IN);
+  ESP_LOGI(TAG, "Going to deep sleep ... will wait for reboot or high on pin %d", GAP_GPIO_IN);
   esp_deep_sleep_start();
 }
 
@@ -139,9 +142,6 @@ void go_to_sleep()
 /* The periods of the LED blinking */
 static volatile uint32_t blink_period_ms_1 = 500;
 static volatile uint32_t blink_period_ms_2 = 500;
-
-/* Log tag for printouts */
-static const char *TAG = "streamer";
 
 static volatile int connected = 0;
 static volatile int source_alive = 0;
@@ -280,7 +280,7 @@ static void handle_gap8_package(uint8_t *buffer, int32_t length) {
             wifi_send_packet((char *)raw_header, 10);
         }
         else{
-          ESP_LOGE("Unexpected header [%d, %d, %d]", header->channel, header->size, header->info);
+          ESP_LOGE(TAG, "Unexpected header [%d, %d, %d]", header->channel, header->size, header->info);
         }
       }
       else{
@@ -389,11 +389,11 @@ void app_main()
   xTaskCreate(img_sending_task, "img_sending_task", 4096, NULL, 5, NULL);
 
 #ifdef SLEEP_IF_INACTIVE
-  ESP_LOGI("Wait 2s for images ...");
+  ESP_LOGI(TAG, "Wait 2s for images ...");
   vTaskDelay(pdMS_TO_TICKS(2000));
   if(got_msg)
   {
-    ESP_LOGI("Yes ... the image source is streaming ... continue the initialization");
+    ESP_LOGI(TAG, "Yes ... the image source is streaming ... continue the initialization");
   }
   else{
     go_to_sleep();

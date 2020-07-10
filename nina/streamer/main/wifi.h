@@ -21,13 +21,13 @@
 #define __WIFI_H__
 
 /* The SSID of the AI-deck when in AP mode */
-#define WIFI_SSID "Bitcraze AI-deck example"
+#define WIFI_SSID "crazyflie"
 
 /* The port used for the example */
 #define PORT 5000
 
 /* The different modes the WiFi can be initialized as */
-typedef enum { 
+typedef enum {
     AIDECK_WIFI_MODE_SOFTAP, /* Act as access-point */
     AIDECK_WIFI_MODE_STATION /* Connect to an access-point */
 } WiFiMode_t;

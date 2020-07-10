@@ -213,11 +213,3 @@ void close_pipe()
   close_fs();
   LOG("Closed pipe\n");
 }
-
-
-// void read_file(char *path, unsigned char *line, unsigned int length)
-// {
-//   void *file = pi_fs_open(&fs, path, PI_FS_FLAGS_READ);
-//   pi_fs_read(file, line, length);
-//   pi_fs_close(file);
-// }

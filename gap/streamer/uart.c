@@ -13,7 +13,7 @@ static int initialized = 0;
 static int enabled = 0;
 
 // Autogenerate private implementation of the uart protocol
-#include "_protocol.c"
+#include "uart_protocol.c"
 
 int init_uart(int enable_rx)
 {
@@ -71,5 +71,19 @@ void close_uart()
   {
     pi_uart_close(&device);
     printf("[GAP8 INFO]: Closed UART\n");
+  }
+}
+
+
+void set_rx_enabled(int value)
+{
+  if(value == enabled || !initialized) return;
+  enabled = value;
+  if(value)
+  {
+    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_UART_RX_PAD_FUNC);
+  }
+  else{
+    pi_pad_set_function(CONFIG_HYPERBUS_DATA6_PAD, CONFIG_HYPERRAM_DATA6_PAD_FUNC);
   }
 }

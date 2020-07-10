@@ -2,9 +2,12 @@
 
 #include "protocol.h"
 
-#define HEADER_LENGTH 4
+#define HEADER_LENGTH {{config.header_length}}
+#define BUFFER_LENGTH {{config.buffer_length}}
 #define UART_RX_PROTOCOL
 static PI_L2 uint8_t header[HEADER_LENGTH];
+static PI_L2 uint8_t rx_buffer[BUFFER_LENGTH];
+PI_L2 uint8_t rx_buffer[sizeof({{data_t.typename}})];
 static pi_task_t task;
 
 {%- for data_t in config.configs + config.inputs %}
@@ -24,7 +27,6 @@ static void received_header(void *arg)
 #ifdef {{data_t.name | upper}}_HEADER
   if(memcmp(header, {{data_t.name | upper}}_HEADER, HEADER_LENGTH) == 0)
   {
-    PI_L2 uint8_t rx_buffer[sizeof({{data_t.typename}})];
     if(pi_uart_read(&device, rx_buffer, sizeof({{data_t.typename}})))
     {
       LOG_ERROR("Failed to read {{data_t.name}} config\n");
@@ -32,11 +34,12 @@ static void received_header(void *arg)
     else{
       set_{{data_t.name}}_config(({{data_t.typename}} *)rx_buffer);
     }
-    goto: done
+    goto done;
   }
 #endif
 {% endfor %}
-  done: pi_uart_read_async(&device, header, HEADER_LENGTH, &task);
+  done:
+  pi_uart_read_async(&device, header, HEADER_LENGTH, &task);
 }
 
 static void start_rx_protocol()

@@ -5,7 +5,6 @@
 
 #define NINA_GPIO_OUT  PI_GPIO_A18_PAD_32_A13
 
-
 static struct pi_device gpio_device;
 static struct pi_device wifi;
 
@@ -63,19 +62,3 @@ void close_nina()
   // Disabled to facilitate developement
   // put_nina_to_sleep();
 }
-
-// printf("Will open_wifi\n");
-// if (open_wifi(&wifi))
-// {
-//   printf("Failed to open wifi\n");
-//   return -1;
-// }
-// printf("Did open_wifi\n");
-// printf("Will init_streamer\n");
-// if(init_streamer(&wifi))
-// {
-//   printf("Failed to open stream\n");
-//   pmsis_exit(-1);
-// }
-// printf("Did init_streamer\n");
-// pi_time_wait_us(100000);

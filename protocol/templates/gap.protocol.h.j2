@@ -1,4 +1,6 @@
 {% from "macros.j2" import typedef, cb, check, param  -%}
+#ifndef __UART_PROTOCOL_H__
+#define __UART_PROTOCOL_H__
 #include <stdint.h>
 
 {%- for data_t in config.configs %}
@@ -14,3 +16,4 @@ void set_{{data_t.name}}_config({{data_t.typename}} *config);
 #define {{data_t.name | upper}}_HEADER "{{data_t.header_value}}"
 void send_{{data_t.name}}({{data_t.typename}} *config);
 {% endfor -%}
+#endif // __UART_PROTOCOL_H__

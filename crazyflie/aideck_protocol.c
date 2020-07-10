@@ -50,22 +50,22 @@ typedef struct {
   uint8_t format;
   uint8_t step;
   uint8_t target_value;
-} __attribute__((packed)) camera_t;
+} __attribute__((packed)) camera_config_t;
 
 
-void log_camera(camera_t *value)
+void log_camera(camera_config_t *value)
 {
   DEBUG_PRINT("marginTop=%u, marginRight=%u, marginBottom=%u, marginLeft=%u, format=%u, step=%u, target_value=%u\n", value->marginTop, value->marginRight, value->marginBottom, value->marginLeft, value->format, value->step, value->target_value);
 }
 
 static struct {
-  camera_t value, dvalue;
+  camera_config_t value, dvalue;
   const char *header;
 } __camera__config = { .header= "!CAM" };
 
 static void __camera_cb(void *buffer)
 {
-  camera_t *value = (camera_t *)buffer;
+  camera_config_t *value = (camera_config_t *)buffer;
   __camera__config.value = __camera__config.dvalue = *value;
   DEBUG_PRINT("GAP has updated camera config\n");
   log_camera(&(__camera__config.value));
@@ -77,48 +77,48 @@ typedef struct {
   uint8_t on;
   uint8_t format;
   uint8_t transport;
-} __attribute__((packed)) stream_t;
+} __attribute__((packed)) stream_config_t;
 
 
-void log_stream(stream_t *value)
+void log_stream(stream_config_t *value)
 {
   DEBUG_PRINT("on=%u, format=%u, transport=%u\n", value->on, value->format, value->transport);
 }
 
 static struct {
-  stream_t value, dvalue;
+  stream_config_t value, dvalue;
   const char *header;
 } __stream__config = { .header= "!STR" };
 
 static void __stream_cb(void *buffer)
 {
-  stream_t *value = (stream_t *)buffer;
+  stream_config_t *value = (stream_config_t *)buffer;
   __stream__config.value = __stream__config.dvalue = *value;
   DEBUG_PRINT("GAP has updated stream config\n");
   log_stream(&(__stream__config.value));
 }
 static input_t config.inputs[INPUT_NUMBER]  = {
-  { .header = "!CAM", .callback = __camera_cb, .size = sizeof(camera_t) },
-  { .header = "!STR", .callback = __stream_cb, .size = sizeof(stream_t) }
+  { .header = "!CAM", .callback = __camera_cb, .size = sizeof(camera_config_t) },
+  { .header = "!STR", .callback = __stream_cb, .size = sizeof(stream_config_t) }
 };
 void update_config(void *data)
 {
-  if(memcmp(&(__camera__config.value), &(__camera__config.dvalue), sizeof(camera_t)))
+  if(memcmp(&(__camera__config.value), &(__camera__config.dvalue), sizeof(camera_config_t)))
   {
     DEBUG_PRINT("Will request GAP to update camera config\n");
     log_camera(&(__camera__config.value));
     uart1SendData(HEADER_LENGTH, (uint8_t *) __camera__config.header);
-    uart1SendData(sizeof(camera_t), (uint8_t *)&(__camera__config.value));
+    uart1SendData(sizeof(camera_config_t), (uint8_t *)&(__camera__config.value));
     __camera__config.dvalue = __camera__config.value;
     return;
   }
 
-  if(memcmp(&(__stream__config.value), &(__stream__config.dvalue), sizeof(stream_t)))
+  if(memcmp(&(__stream__config.value), &(__stream__config.dvalue), sizeof(stream_config_t)))
   {
     DEBUG_PRINT("Will request GAP to update stream config\n");
     log_stream(&(__stream__config.value));
     uart1SendData(HEADER_LENGTH, (uint8_t *) __stream__config.header);
-    uart1SendData(sizeof(stream_t), (uint8_t *)&(__stream__config.value));
+    uart1SendData(sizeof(stream_config_t), (uint8_t *)&(__stream__config.value));
     __stream__config.dvalue = __stream__config.value;
     return;
   }

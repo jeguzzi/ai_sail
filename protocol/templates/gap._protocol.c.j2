@@ -1,16 +1,18 @@
 {%- from "macros.j2" import typedef -%}
 
-#include "protocol.h"
-
-#define HEADER_LENGTH {{config.header_length}}
-#define BUFFER_LENGTH {{config.buffer_length}}
-#define UART_RX_PROTOCOL
+#include "uart_protocol.h"
+{% if configs or inputs %}
+#define HEADER_LENGTH {{header_length}}
 static PI_L2 uint8_t header[HEADER_LENGTH];
+{% endif %}
+{% if configs %}
+#define UART_RX_PROTOCOL
+#define BUFFER_LENGTH {{buffer_length}}
 static PI_L2 uint8_t rx_buffer[BUFFER_LENGTH];
-PI_L2 uint8_t rx_buffer[sizeof({{data_t.typename}})];
 static pi_task_t task;
+{% endif %}
 
-{%- for data_t in config.configs + config.inputs %}
+{%- for data_t in configs + inputs %}
 void send_{{data_t.name}}_config({{data_t.typename}} *config)
 {
   if(!enabled) return;
@@ -21,9 +23,10 @@ void send_{{data_t.name}}_config({{data_t.typename}} *config)
 }
 {% endfor %}
 
+{%- if configs %}
 static void received_header(void *arg)
 {
-{% for data_t in config.configs %}
+{% for data_t in configs %}
 #ifdef {{data_t.name | upper}}_HEADER
   if(memcmp(header, {{data_t.name | upper}}_HEADER, HEADER_LENGTH) == 0)
   {
@@ -47,3 +50,4 @@ static void start_rx_protocol()
   pi_task_callback(&task, (void *) received_header, &task);
   pi_uart_read_async(&device, header, HEADER_LENGTH, &task);
 }
+{%- endif %}

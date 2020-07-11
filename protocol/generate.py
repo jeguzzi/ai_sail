@@ -1,11 +1,12 @@
 import jinja2
 from typing import Type
-from base import Base, Config, to_c, to_cf, to_format
+from base import Base, to_c, to_cf, to_format
 import os
 from typing import Tuple
 from datetime import datetime as dt
 import importlib.util
 import argparse
+import ctypes
 
 
 def _f(item: Tuple[str, Type]) -> str:
@@ -18,7 +19,7 @@ def input_struct(t: Base) -> str:
 
 
 def is_config(t: Base) -> bool:
-    return isinstance(t, Config)
+    return hasattr(t, 'is_config')
 
 
 def main(config_path: str) -> None:
@@ -28,6 +29,19 @@ def main(config_path: str) -> None:
     if not config_spec.loader:
         raise RuntimeError(f"Could not load config from {config_path}")
     config_spec.loader.exec_module(c)  # type: ignore
+    configurations = [t for _, t in vars(c).items() if hasattr(t, 'is_config')]
+    inputs = [t for t in vars(c).values() if hasattr(t, 'is_input')]
+    hs = [len(i.header_value) for i in configurations + inputs]
+    if hs and not all(hs[0] == h for h in hs[1:]):
+        print("Header length should be the same for all items")
+        for i in configurations + inputs:
+            print(f'{i.name}: {i.header_value} ({len(i.header_value)}')
+        return
+    header_length = hs[0] if hs else 0
+    if configurations or inputs:
+        buffer_length = max(ctypes.sizeof(i) for i in configurations + inputs)
+    else:
+        buffer_length = 0
     e = jinja2.Environment(loader=jinja2.FileSystemLoader('./templates'))
     e.filters['c'] = to_c
     e.filters['cf'] = to_cf
@@ -45,13 +59,22 @@ def main(config_path: str) -> None:
     os.makedirs(gap_build_folder, exist_ok=True)
     template = e.get_template('crazyflie.aideck_p.h.j2')
     with open(os.path.join(cf_build_folder, 'aideck_protocol.c'), 'w') as f:
-        f.write(template.render(config=c, source=source, date=date))
+        f.write(template.render(
+            configs=configurations, inputs=inputs,
+            header_length=header_length, buffer_length=buffer_length,
+            source=source, date=date))
     template = e.get_template('gap.protocol.h.j2')
     with open(os.path.join(gap_build_folder, 'uart_protocol.h'), 'w') as f:
-        f.write(template.render(config=c))
+        f.write(template.render(
+            configs=configurations, inputs=inputs,
+            header_length=header_length, buffer_length=buffer_length,
+            source=source, date=date))
     template = e.get_template('gap._protocol.c.j2')
     with open(os.path.join(gap_build_folder, 'uart_protocol.c'), 'w') as f:
-        f.write(template.render(config=c))
+        f.write(template.render(
+            configs=configurations, inputs=inputs,
+            header_length=header_length, buffer_length=buffer_length,
+            source=source, date=date))
 
 
 if __name__ == '__main__':

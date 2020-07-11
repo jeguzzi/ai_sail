@@ -16,25 +16,19 @@ python3 generate.py <path_to_the_config>
 
 For example, this config file
 ```
-from base import Config, Input, c_uint8
+from base import config, input, c_uint8, c_float  # type: ignore
 
-header_length = 4
 
-class MyConfig(Config):
+@config(name='a_config', group='my_config', header="!MYC")
+class MyConfig:
     an_integer_field: c_uint8
     a_float_field: c_float
 
-class MyInput(Input):
+
+@input(name='an_input', callback='my_cb', header="!MYI")
+class MyInput:
     an_integer_field: c_uint8
     a_float_field: c_float
-
-configs = [
-    MyConfig(name='myconfig', group='myconfig', header="!MYC")
-]
-
-inputs = [
-    MyInput(name='my_input', group='myinput', header="\\x90\\x19\\x08\\x31")
-]
 ```
 will generate the code for 1 configuration and 1 input.
 

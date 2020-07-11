@@ -1,6 +1,7 @@
+import ctypes
 from ctypes import (c_char, c_float, c_int8, c_int16, c_int32, c_uint8,
-                    c_uint16, c_uint32)
-from typing import Optional, Type
+                    c_uint16, c_uint32, Structure)
+from typing import Optional, Type, Callable
 
 _conversions = {
     c_float:  ('float'   , 'FLOAT' , '%.3g'),  # noqa
@@ -25,43 +26,49 @@ def to_cf(t: Type) -> str:
 def to_format(t: Type) -> str:
     return _conversions[t][2]
 
-
-class Base:
-    def __init__(self, name: str, header: str, group: str = ''):
-        self.name = name
-        self.group = group
-        self.header_value = header
-        self._cb = '__' + self.name + '_cb'
-
-    @property
-    def typename(self) -> str:
-        return self.name + "_t"
-
-    @property
-    def value(self) -> str:
-        return '__' + self.name + '__config'
-
-    @property
-    def cb(self) -> str:
-        return self._cb
-
-    @property
-    def header(self) -> str:
-        return '__' + self.name + '_header'
+# def size(Structure):
 
 
-class Input(Base):
-    @property
-    def set_cb(self) -> str:
-        return self.name + '_callback'
-
-    def __init__(self, name: str, header: str, group: str = '',
-                 callback: Optional[str] = None):
-        super(Input, self).__init__(name=name, group=group,
-                                    header=header)
-        if callback is not None:
-            self._cb = callback
+class Base(Structure):
+    value: str
+    header: str
+    typename: str
+    name: str
+    cb: str
 
 
-class Config(Base):
-    pass
+def base(name: str, header: str, cls: Type) -> Type:
+    return type(
+        cls.__name__, (Base, ),
+        {'_pack_': 1,
+         '_fields_': [(n, t) for n, t in cls.__annotations__.items()
+                      if t.__name__ in dir(ctypes)],
+         'header': '__' + name + '_header',
+         'cb': '__' + name + '_cb',
+         'value': '__' + name + '__config',
+         'typename': name + "_t",
+         'header_value': header,
+         'name': name})
+
+
+def config(name: str, group: str, header: str) -> Callable[[Type], Type]:
+
+    def make_config(cls: Type) -> Type:
+        C = base(name=name, header=header, cls=cls)
+        C.group = group
+        C.is_config = True
+        return C
+
+    return make_config
+
+
+def input(name: str, header: str, callback: Optional[str] = None  # noqa
+          ) -> Callable[[Type], Type]:
+
+    def make_input(cls: Type) -> Type:
+        C = base(name=name, header=header, cls=cls)
+        C.set_cb = callback if callback is not None else name + '_callback'
+        C.is_input = True
+        return C
+
+    return make_input

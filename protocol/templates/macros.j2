@@ -1,6 +1,6 @@
 {% macro typedef(data_t) %}
 typedef struct {
-{%- for name, type in data_t.__annotations__.items() %}
+{%- for name, type in data_t._fields_ %}
   {{type | c}} {{name}};
 {%- endfor %}
 } __attribute__((packed)) {{data_t.typename}};
@@ -9,7 +9,7 @@ typedef struct {
 {% macro log(data_t) %}
 void log_{{data_t.name}}({{data_t.typename}} *value)
 {
-  DEBUG_PRINT("{{data_t.__annotations__.items() | map('f') | join(', ')}}\n", value->{{data_t.__annotations__.keys() | join(', value->')}});
+  DEBUG_PRINT("{{data_t._fields_ | map('f') | join(', ')}}\n", value->{{data_t._fields_ | map('first') | join(', value->')}});
 }
 {% endmacro %}
 
@@ -21,7 +21,7 @@ static struct {
 {% endmacro %}
 
 {% macro param(data_t) %}
-{%- for name, type in data_t.__annotations__.items() %}
+{%- for name, type in data_t._fields_ %}
 PARAM_ADD(PARAM_{{type | cf}}, {{name}}, &({{data_t.value}}.value.{{name}}))
 {%- endfor -%}
 {% endmacro %}

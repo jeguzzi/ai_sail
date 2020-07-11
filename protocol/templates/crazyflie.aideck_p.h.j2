@@ -5,8 +5,12 @@
   {{source | indent(2)}}
 */
 
-#define HEADER_LENGTH {{config.header_length}}
-#define INPUT_NUMBER {{ (config.inputs + config.configs) | count}}
+#define HEADER_LENGTH {{header_length}}
+#define INPUT_NUMBER {{ (inputs + configs) | count}}
+{%- if configs %}
+#define AIDECK_HAS_CONFIGS
+{% endif %}
+
 
 typedef struct {
   const char *header;
@@ -15,7 +19,7 @@ typedef struct {
   bool valid;
 } input_t;
 
-{%- for data_t in config.configs %}
+{%- for data_t in configs %}
 // --- config {{data_t.name}}
 {{ typedef(data_t) }}
 {{ log(data_t) }}
@@ -23,28 +27,36 @@ typedef struct {
 {{- cb(data_t) -}}
 {% endfor -%}
 
-{%- for data_t in  config.inputs %}
+{%- for data_t in inputs %}
 // --- input {{data_t.name}}
 {{ typedef(data_t) }}
 {{ log(data_t) }}
 // To be implemented
 static void {{data_t.set_cb}}({{data_t.typename}} *);
 {{- cb(data_t) -}}
-{% endfor -%}
-
-static input_t config.inputs[INPUT_NUMBER]  = {
-  {{(config.configs + config.inputs) | map('input') | join(",\n") | indent(2)}}
+{% endfor %}
+{%if inputs or configs %}
+static input_t inputs[INPUT_NUMBER]  = {
+  {{(configs + inputs) | map('input') | join(",\n") | indent(2)}}
 };
+{% else %}
+static input_t *inputs;
+{% endif %}
+
+{% if configs %}
+
 void update_config(void *data)
 {
-{%- for data_t in config.configs -%}
+{%- for data_t in configs -%}
   {{- check(data_t) | indent(2) -}}
 {%- endfor %}
 }
-{% for group, cs in config.configs | groupby('group') %}
+
+{% for group, cs in configs | groupby('group') %}
 PARAM_GROUP_START({{group}})
 {%- for data_t in cs -%}
 {{- param(data_t) -}}
 {%- endfor %}
 PARAM_GROUP_STOP({{group}})
 {% endfor %}
+{% endif %}

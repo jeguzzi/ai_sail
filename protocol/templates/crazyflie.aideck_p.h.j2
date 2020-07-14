@@ -6,6 +6,10 @@
 */
 
 #define HEADER_LENGTH {{header_length}}
+#define BUFFER_LENGTH {{buffer_length}}
+#define VERBOSE_RX
+//#define VERBOSE_TX
+#define REQUEST_TIMEOUT 2000 // number of milliseconds to wait for a confirmation
 #define INPUT_NUMBER {{ (inputs + configs) | count}}
 {%- if configs %}
 #define AIDECK_HAS_CONFIGS
@@ -47,6 +51,7 @@ static input_t *inputs;
 
 void update_config(void *data)
 {
+uint32_t now = T2M(xTaskGetTickCount());
 {%- for data_t in configs -%}
   {{- check(data_t) | indent(2) -}}
 {%- endfor %}

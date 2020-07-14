@@ -5,17 +5,17 @@
 
 {%- for data_t in configs %}
 {{ typedef(data_t) }}
-#define {{data_t.name | upper}}_HEADER "{{data_t.header_value}}"
-void send_{{data_t.name}}_config({{data_t.typename}} *config);
+#define {{data_t.name | upper}}_HEADER "{{data_t.header_value | c_str}}"
+void send_{{data_t.name}}({{data_t.typename}} *config);
 // To be implemented if {{data_t.name | upper}}_HEADER is defined
 #ifdef {{data_t.name | upper}}_HEADER
-void set_{{data_t.name}}_config({{data_t.typename}} *config);
+void set_{{data_t.name}}({{data_t.typename}} *config);
 #endif
 {% endfor -%}
 
 {%- for data_t in inputs %}
 {{ typedef(data_t) }}
-#define {{data_t.name | upper}}_HEADER "{{data_t.header_value}}"
+#define {{data_t.name | upper}}_HEADER "{{data_t.header_value | c_str}}"
 void send_{{data_t.name}}({{data_t.typename}} *config);
 {% endfor %}
 #endif // __UART_PROTOCOL_H__

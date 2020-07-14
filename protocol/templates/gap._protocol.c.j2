@@ -13,7 +13,7 @@ static pi_task_t task;
 {% endif %}
 
 {%- for data_t in configs + inputs %}
-void send_{{data_t.name}}_config({{data_t.typename}} *config)
+void send_{{data_t.name}}({{data_t.typename}} *config)
 {
   if(!enabled) return;
 #ifdef {{data_t.name | upper}}_HEADER
@@ -35,7 +35,7 @@ static void received_header(void *arg)
       LOG_ERROR("Failed to read {{data_t.name}} config\n");
     }
     else{
-      set_{{data_t.name}}_config(({{data_t.typename}} *)rx_buffer);
+      set_{{data_t.name}}(({{data_t.typename}} *)rx_buffer);
     }
     goto done;
   }

@@ -1,6 +1,6 @@
 import jinja2
 from typing import Type
-from base import Base, to_c, to_cf, to_format
+from base import Base, to_c, to_cf, to_format, c_str, c_float
 import os
 from typing import Tuple
 from datetime import datetime as dt
@@ -14,8 +14,16 @@ def _f(item: Tuple[str, Type]) -> str:
     return f'{name}={to_format(t)}'
 
 
+def c_value(item: Tuple[str, Type]) -> str:
+    if item[1] == c_float:
+        prefix = '(double)'
+    else:
+        prefix = ''
+    return f'{prefix}value->{item[0]}'
+
+
 def input_struct(t: Base) -> str:
-    return f'{{ .header = "{t.header_value}", .callback = {t.cb}, .size = sizeof({t.typename}) }}'
+    return f'{{ .header = "{c_str(t.header_value)}", .callback = {t.cb}, .size = sizeof({t.typename}) }}'
 
 
 def is_config(t: Base) -> bool:
@@ -42,10 +50,13 @@ def main(config_path: str) -> None:
         buffer_length = max(ctypes.sizeof(i) for i in configurations + inputs)
     else:
         buffer_length = 0
-    e = jinja2.Environment(loader=jinja2.FileSystemLoader('./templates'))
+    template_folder = os.path.join(os.path.dirname(__file__), 'templates')
+    e = jinja2.Environment(loader=jinja2.FileSystemLoader(template_folder))
     e.filters['c'] = to_c
     e.filters['cf'] = to_cf
     e.filters['f'] = _f
+    e.filters['c_str'] = c_str
+    e.filters['c_value'] = c_value
     e.filters['input'] = input_struct
     e.tests['config'] = is_config
     with open(config_path, 'r') as f:

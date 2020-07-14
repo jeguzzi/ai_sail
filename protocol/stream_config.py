@@ -10,6 +10,8 @@ class Camera:
     format: c_uint8  # noqa
     step: c_uint8
     target_value: c_uint8
+    ae: c_uint8
+    fps: c_uint8
 
 
 @config(name='stream', group='aideck_stream', header="!STR")
@@ -17,8 +19,3 @@ class Stream:
     on: c_uint8
     format: c_uint8  # noqa
     transport: c_uint8
-
-
-@config(name='inference', group='aideck_inference', header="!INF")
-class Inference:
-    active: c_uint8

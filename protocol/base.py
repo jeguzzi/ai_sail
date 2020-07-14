@@ -1,7 +1,9 @@
 import ctypes
 from ctypes import (c_char, c_float, c_int8, c_int16, c_int32, c_uint8,
                     c_uint16, c_uint32, Structure)
-from typing import Optional, Type, Callable
+from typing import Optional, Type, Callable, Union
+
+Header = Union[str, bytes]
 
 _conversions = {
     c_float:  ('float'   , 'FLOAT' , '%.3g'),  # noqa
@@ -26,6 +28,12 @@ def to_cf(t: Type) -> str:
 def to_format(t: Type) -> str:
     return _conversions[t][2]
 
+
+def c_str(header: Header) -> str:
+    if(isinstance(header, str)):
+        return header
+    return "".join(f"\\x{d:x}" for d in header)
+
 # def size(Structure):
 
 
@@ -37,7 +45,7 @@ class Base(Structure):
     cb: str
 
 
-def base(name: str, header: str, cls: Type) -> Type:
+def base(name: str, header: Header, cls: Type) -> Type:
     return type(
         cls.__name__, (Base, ),
         {'_pack_': 1,
@@ -51,7 +59,7 @@ def base(name: str, header: str, cls: Type) -> Type:
          'name': name})
 
 
-def config(name: str, group: str, header: str) -> Callable[[Type], Type]:
+def config(name: str, group: str, header: Header) -> Callable[[Type], Type]:
 
     def make_config(cls: Type) -> Type:
         C = base(name=name, header=header, cls=cls)
@@ -62,7 +70,7 @@ def config(name: str, group: str, header: str) -> Callable[[Type], Type]:
     return make_config
 
 
-def input(name: str, header: str, callback: Optional[str] = None  # noqa
+def input(name: str, header: Header, callback: Optional[str] = None  # noqa
           ) -> Callable[[Type], Type]:
 
     def make_input(cls: Type) -> Type:

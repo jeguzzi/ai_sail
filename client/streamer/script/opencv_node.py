@@ -13,7 +13,7 @@ import numpy as np
 
 def display(frame: np.ndarray) -> None:
     cv2.imshow('camera stream', frame)
-    cv2.waitKey(10)
+    cv2.waitKey(1)
 
 
 def main() -> None:

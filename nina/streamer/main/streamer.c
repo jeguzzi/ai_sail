@@ -101,6 +101,8 @@
 /* The GAP is connected also on a GPIO  (there is another one too) */
 #define GAP_GPIO_IN 2
 
+// #define TEST_THROUGHPUT
+
 /* Log tag for printouts */
 static const char *TAG = "streamer";
 
@@ -226,6 +228,7 @@ static image_format_t format = UNKNOWN;
 static uint32_t number_of_frames = 0;
 
 static void handle_gap8_package(uint8_t *buffer, int32_t length) {
+  // printf("H %d %d %d\n", buffer[0], length, xTaskGetTickCount() / portTICK_RATE_MS);
   got_msg = 1;
   nina_req_t *req = (nina_req_t *)buffer;
   uint32_t *hs = (uint32_t *)buffer;
@@ -294,6 +297,10 @@ static void handle_gap8_package(uint8_t *buffer, int32_t length) {
             bs = 8192;
             if(size < bs) bs = size;
             length = spi_read_data(&buffer, bs);
+            // if(length != bs)
+            // {
+            //   printf("Expected %d, got %d bits", bs, length);
+            // }
             // There are still `size - length` bits to read
             size -= length;
             if(wifi_is_socket_connected())
@@ -335,6 +342,7 @@ static void handle_gap8_package(uint8_t *buffer, int32_t length) {
   }
 }
 
+
 /* Task for receiving image data from GAP8 and sending to client via WiFi */
 static void img_sending_task(void *pvParameters) {
   spi_init();
@@ -347,6 +355,7 @@ static void img_sending_task(void *pvParameters) {
     }
   }
 }
+
 
 /* Task for handling WiFi state */
 static void wifi_task(void *pvParameters) {
@@ -373,11 +382,56 @@ static void led_task(void *pvParameters) {
   }
 }
 
+#ifdef TEST_THROUGHPUT
+#define CHUNK_SIZE (2048)
+#define WIDTH 160
+#define HEIGHT 96
+#define COLOR 0
+// Just keep streaming a dummy 160 x 96 RAW image
+
+// Results:
+
+void test_throughput()
+{
+  const char buffer[CHUNK_SIZE];
+  memcpy(raw_header, RAW_HEADER, 4);
+  raw_header[2] = WIDTH;
+  raw_header[3] = HEIGHT;
+  raw_header[4] = COLOR;
+  wifi_init(WIFI_MODE, CONFIG_EXAMPLE_SSID, CONFIG_EXAMPLE_PASSWORD);
+  xTaskCreate(wifi_task, "wifi_task", 4096, NULL, 5, NULL);
+  while(1)
+  {
+    if(wifi_is_socket_connected())
+    {
+      int size = WIDTH * HEIGHT;
+      int chunk;
+      wifi_send_packet((const char*) raw_header, 10);
+      while(size > 0)
+      {
+        chunk = (size < CHUNK_SIZE) ? size : CHUNK_SIZE;
+        wifi_send_packet(buffer, chunk);
+        size -= chunk;
+      }
+      wifi_send_packet((const char*) raw_footer, 4);
+    }
+    else{
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+  }
+}
+#endif
+
 void app_main()
 {
   int wakeup_cause = esp_sleep_get_wakeup_cause();
   nvs_flash_init();
   ESP_LOGI(TAG, "Wake up cause: %d\n", wakeup_cause);
+
+#ifdef TEST_THROUGHPUT
+  test_throughput();
+  return;
+#endif
 
 #ifdef SLEEP_AFTER_BOOT
   if(wakeup_cause != 2)
@@ -386,6 +440,7 @@ void app_main()
   }
 #endif
 
+  // xTaskCreatePinnedToCore(img_sending_task, "img_sending_task", 4096, NULL, 5, NULL, 0);
   xTaskCreate(img_sending_task, "img_sending_task", 4096, NULL, 5, NULL);
 
 #ifdef SLEEP_IF_INACTIVE

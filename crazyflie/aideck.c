@@ -30,11 +30,13 @@ This file is an extension of the original example provided by Bitcraze
 // Include the autogenerate code implementing the protocol
 #include "aideck_protocol.c"
 
+#ifdef AIDECK_HAS_CONFIGS
 static xTimerHandle timer;
 static void configTimer(xTimerHandle timer)
 {
   workerSchedule(update_config, NULL);
 }
+#endif
 
 static bool isInit = false;
 
@@ -93,6 +95,8 @@ static int read_uart_bytes(int size, uint8_t *buffer)
 // Read UART 1 while looking for structured messages.
 // When none are found, print everything to console.
 static uint8_t header_buffer[HEADER_LENGTH];
+static uint8_t rx_buffer[BUFFER_LENGTH];
+
 static void read_uart_message()
 {
   uint8_t *byte = header_buffer;
@@ -134,12 +138,11 @@ static void read_uart_message()
   {
     if(input->valid) break;
   }
-  uint8_t buffer[input->size];
-  int size = read_uart_bytes(input->size, buffer);
+  int size = read_uart_bytes(input->size, rx_buffer);
   if( size == input->size )
   {
     // Call the corresponding callback
-    input->callback(buffer);
+    input->callback(rx_buffer);
   }
   else{
     DEBUG_PRINT("Failed to receive message %4s: (%d vs %d bytes received)\n",
@@ -183,9 +186,10 @@ static void aideckInit(DeckInfo *info)
     xTaskCreate(NinaTask, AI_DECK_NINA_TASK_NAME, AI_DECK_TASK_STACKSIZE, NULL,
                 AI_DECK_TASK_PRI, NULL);
 #endif
+#ifdef AIDECK_HAS_CONFIGS
   timer = xTimerCreate( "configTimer", M2T(1000), pdTRUE, NULL, configTimer );
   xTimerStart(timer, 1000);
-
+#endif
   isInit = true;
 }
 

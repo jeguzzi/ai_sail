@@ -6,7 +6,9 @@
 
 #define VERBOSE
 
-#define LOG_UART
+#ifdef UART_COMM
+// #define LOG_UART
+#endif
 #define LOG_JTAG
 
 #define ABS(x)   ( (x<0) ? (-x) : x )

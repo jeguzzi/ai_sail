@@ -32,10 +32,10 @@ int init_uart(int enable_rx)
   //start listening
   if(enable_rx)
   {
-    LOG("Start UART RX\n");
 #ifdef UART_RX_PROTOCOL
     set_rx_enabled(1);
     start_rx_protocol();
+    LOG("Started UART RX\n");
 #endif
   }
   LOG("Initialized UART\n");
@@ -61,6 +61,7 @@ void uart_flush_rx()
 {
   if(!initialized) return;
   pi_uart_ioctl(&device, PI_UART_IOCTL_FLUSH, NULL);
+  LOG("Flushed UART RX");
   // pi_uart_ioctl(&device, PI_UART_IOCTL_ABORT_RX, NULL);
   // pi_uart_ioctl(&device, PI_UART_IOCTL_ENABLE_RX, NULL);
 }

@@ -11,6 +11,7 @@ static struct pi_device wifi;
 static void wake_up_nina()
 {
   // printf("will wake_up_nina\n");
+  pi_gpio_pin_configure(&gpio_device, NINA_GPIO_OUT, PI_GPIO_OUTPUT);
   pi_gpio_pin_write(&gpio_device, NINA_GPIO_OUT, 1);
   // printf("did wake_up_nina\n");
 }
@@ -24,7 +25,10 @@ static void put_nina_to_sleep()
 
 struct pi_device * open_wifi()
 {
+  // LOG("Wake up NINA\n");
   wake_up_nina();
+  pi_time_wait_us(1000);
+  // LOG("Open WiFi\n");
 
   struct pi_nina_w10_conf nina_conf;
   pi_nina_w10_conf_init(&nina_conf);

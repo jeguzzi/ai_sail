@@ -1,4 +1,9 @@
 {%- from "macros.j2" import typedef -%}
+/*
+  This file was autogenerate on {{date}} from the following Python config:
+
+  {{source | indent(2)}}
+*/
 
 #include "uart_protocol.h"
 {% if configs or inputs %}
@@ -15,7 +20,7 @@ static pi_task_t task;
 {%- for data_t in configs + inputs %}
 void send_{{data_t.name}}({{data_t.typename}} *config)
 {
-  if(!enabled) return;
+  if(!initialized) return;
 #ifdef {{data_t.name | upper}}_HEADER
   pi_uart_write(&device, {{data_t.name | upper}}_HEADER, HEADER_LENGTH);
   pi_uart_write(&device, (uint8_t *)config, sizeof({{data_t.typename}}));
@@ -24,17 +29,14 @@ void send_{{data_t.name}}({{data_t.typename}} *config)
 {% endfor %}
 
 {%- if configs %}
-static void received_header(void *arg)
-{
+static void received_header(void *arg) {
 {% for data_t in configs %}
 #ifdef {{data_t.name | upper}}_HEADER
-  if(memcmp(header, {{data_t.name | upper}}_HEADER, HEADER_LENGTH) == 0)
-  {
-    if(pi_uart_read(&device, rx_buffer, sizeof({{data_t.typename}})))
-    {
+  if(memcmp(header, {{data_t.name | upper}}_HEADER, HEADER_LENGTH) == 0) {
+    if(pi_uart_read(&device, rx_buffer, sizeof({{data_t.typename}}))) {
       LOG_ERROR("Failed to read {{data_t.name}} config\n");
     }
-    else{
+    else {
       set_{{data_t.name}}(({{data_t.typename}} *)rx_buffer);
     }
     goto done;
@@ -45,8 +47,7 @@ static void received_header(void *arg)
   pi_uart_read_async(&device, header, HEADER_LENGTH, &task);
 }
 
-static void start_rx_protocol()
-{
+static void start_rx_protocol() {
   pi_task_callback(&task, (void *) received_header, &task);
   pi_uart_read_async(&device, header, HEADER_LENGTH, &task);
 }

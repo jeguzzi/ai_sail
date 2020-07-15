@@ -7,8 +7,7 @@ typedef struct {
 {% endmacro %}
 
 {% macro log(data_t) %}
-void log_{{data_t.name}}({{data_t.typename}} *value)
-{
+void log_{{data_t.name}}({{data_t.typename}} *value) {
   DEBUG_PRINT("{{data_t._fields_ | map('f') | join(', ')}}\n", {{data_t._fields_ | map('c_value') | join(',')}});
 }
 {% endmacro %}
@@ -36,20 +35,21 @@ static void {{data_t.cb}}(void *buffer)
 {%- else %}
   {{data_t.value}}.value = *value;
 #ifdef VERBOSE_RX
-  uint32_t now = T2M(xTaskGetTickCount());
-  if({{data_t.value}}.request_time && memcmp(&({{data_t.value}}.value), &({{data_t.value}}.dvalue), sizeof({{data_t.typename}})))
-  {
-    DEBUG_PRINT("[WARNING] GAP has set {{data_t.name}} config after %ld ms\n", now - {{data_t.value}}.request_time);
-    log_{{data_t.name}}(&({{data_t.value}}.value));
-    DEBUG_PRINT("to a different value than the one requested\n");
-    log_{{data_t.name}}(&({{data_t.value}}.dvalue));
-  }
-  else{
-    if({{data_t.value}}.request_time)
-      DEBUG_PRINT("GAP has set {{data_t.name}} config after %ld ms to\n", now - {{data_t.value}}.request_time);
-    else
-      DEBUG_PRINT("GAP has set {{data_t.name}} config to\n");
-    log_{{data_t.name}}(&({{data_t.value}}.value));
+  if(verbose_rx) {
+    uint32_t now = T2M(xTaskGetTickCount());
+    if({{data_t.value}}.request_time && memcmp(&({{data_t.value}}.value), &({{data_t.value}}.dvalue), sizeof({{data_t.typename}}))) {
+      DEBUG_PRINT("[WARNING] GAP has set {{data_t.name}} config after %ld ms\n", now - {{data_t.value}}.request_time);
+      log_{{data_t.name}}(&({{data_t.value}}.value));
+      DEBUG_PRINT("to a different value than the one requested\n");
+      log_{{data_t.name}}(&({{data_t.value}}.dvalue));
+    }
+    else {
+      if({{data_t.value}}.request_time)
+        DEBUG_PRINT("GAP has set {{data_t.name}} config after %ld ms to\n", now - {{data_t.value}}.request_time);
+      else
+        DEBUG_PRINT("GAP has set {{data_t.name}} config to\n");
+      log_{{data_t.name}}(&({{data_t.value}}.value));
+    }
   }
 #endif // VERBOSE_RX
   {{data_t.value}}.dvalue = {{data_t.value}}.value;
@@ -59,19 +59,21 @@ static void {{data_t.cb}}(void *buffer)
 {% endmacro %}
 
 {% macro check(data_t) %}
-if({{data_t.value}}.request_time)
-{
+if({{data_t.value}}.request_time) {
   if(now - {{data_t.value}}.request_time < REQUEST_TIMEOUT) return;
 #ifdef VERBOSE_RX
-  DEBUG_PRINT("[WARNING] Request to GAP to update {{data_t.name}} config has timed out after %ld ms\n", now - {{data_t.value}}.request_time);
+  if(verbose_rx) {
+    DEBUG_PRINT("[WARNING] Request to GAP to update {{data_t.name}} config has timed out after %ld ms\n", now - {{data_t.value}}.request_time);
+  }
 #endif // VERBOSE_RX
   {{data_t.value}}.request_time = 0;
 }
-if(memcmp(&({{data_t.value}}.value), &({{data_t.value}}.dvalue), sizeof({{data_t.typename}})))
-{
+if(memcmp(&({{data_t.value}}.value), &({{data_t.value}}.dvalue), sizeof({{data_t.typename}}))) {
 #ifdef VERBOSE_TX
-  DEBUG_PRINT("Will request GAP to update {{data_t.name}} config\n");
-  log_{{data_t.name}}(&({{data_t.value}}.value));
+  if(verbose_tx) {
+    DEBUG_PRINT("Will request GAP to update {{data_t.name}} config\n");
+    log_{{data_t.name}}(&({{data_t.value}}.value));
+  }
 #endif // VERBOSE_TX
   {{data_t.value}}.request_time = T2M(xTaskGetTickCount());
   uart1SendData(HEADER_LENGTH, (uint8_t *) {{data_t.value}}.header);

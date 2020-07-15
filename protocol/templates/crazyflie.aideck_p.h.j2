@@ -8,7 +8,15 @@
 #define HEADER_LENGTH {{header_length}}
 #define BUFFER_LENGTH {{buffer_length}}
 #define VERBOSE_RX
-//#define VERBOSE_TX
+#define VERBOSE_TX
+
+#ifdef VERBOSE_RX
+static uint8_t verbose_rx = 0;
+#endif
+#ifdef VERBOSE_TX
+static uint8_t verbose_tx = 0;
+#endif
+
 #define REQUEST_TIMEOUT 2000 // number of milliseconds to wait for a confirmation
 #define INPUT_NUMBER {{ (inputs + configs) | count}}
 {%- if configs %}
@@ -40,7 +48,7 @@ static void {{data_t.set_cb}}({{data_t.typename}} *);
 {{- cb(data_t) -}}
 {% endfor %}
 {%if inputs or configs %}
-static input_t inputs[INPUT_NUMBER]  = {
+static input_t inputs[INPUT_NUMBER] = {
   {{(configs + inputs) | map('input') | join(",\n") | indent(2)}}
 };
 {% else %}
@@ -49,19 +57,29 @@ static input_t *inputs;
 
 {% if configs %}
 
-void update_config(void *data)
-{
-uint32_t now = T2M(xTaskGetTickCount());
+void update_config(void *data) {
+  uint32_t now = T2M(xTaskGetTickCount());
 {%- for data_t in configs -%}
   {{- check(data_t) | indent(2) -}}
 {%- endfor %}
 }
 
-{% for group, cs in configs | groupby('group') %}
+{%- for group, cs in configs | groupby('group') %}
 PARAM_GROUP_START({{group}})
 {%- for data_t in cs -%}
 {{- param(data_t) -}}
 {%- endfor %}
 PARAM_GROUP_STOP({{group}})
 {% endfor %}
-{% endif %}
+{% endif -%}
+
+#if defined(VERBOSE_TX) || defined(VERBOSE_RX)
+PARAM_GROUP_START(aideck_verbose)
+#ifdef VERBOSE_RX
+PARAM_ADD(PARAM_UINT8, rx, &verbose_rx)
+#endif
+#ifdef VERBOSE_TX
+PARAM_ADD(PARAM_UINT8, tx, &verbose_tx)
+#endif
+PARAM_GROUP_STOP(aideck_aideck_verbose)
+#endif

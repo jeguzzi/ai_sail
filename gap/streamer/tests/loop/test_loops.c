@@ -28,6 +28,10 @@
 #define SEND
 // #define JUST_STREAM_AFTER 10
 
+extern image_acquisition_t image_acquisition;
+extern image_streaming_t image_streaming;
+extern unsigned char * crop(unsigned char *);
+
 
 static camera_config_t camera_config = {
   .top = 33,

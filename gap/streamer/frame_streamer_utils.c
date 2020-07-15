@@ -1,6 +1,6 @@
 #include "frame_streamer_utils.h"
 #include "uart_protocol.h"
-#include "common.h"
+#include "logging.h"
 
 //private from https://github.com/GreenWaves-Technologies/gap_sdk/blob/master/tools/gap_tools/frame_streamer/frame_streamer.c
 

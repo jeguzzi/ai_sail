@@ -1,7 +1,7 @@
 #include "pmsis.h"
 #include "bsp/camera.h"
 #include "bsp/camera/himax.h"
-#include "common.h"
+#include "logging.h"
 #include "himax_utils.h"
 
 // Apparently binning cannot be changed once the camera is running.
@@ -182,7 +182,7 @@ static int max_fps(uint8_t format)
   return FREQ / min_line_length(format) / min_number_of_lines(format);
 }
 
-void himax_set_fps(struct pi_device *camera, uint8_t fps, uint8_t format)
+uint8_t himax_set_fps(struct pi_device *camera, uint8_t fps, uint8_t format)
 {
     int m_fps = max_fps(format);
     if(fps > m_fps){
@@ -202,6 +202,7 @@ void himax_set_fps(struct pi_device *camera, uint8_t fps, uint8_t format)
     pi_camera_reg_set(camera, HIMAX_LINE_LEN_PCK_L, &value);
     LOG("Set fps to %d (%d x %d @ %d MHz)\n", fps, line_length, number_of_lines, FREQ / 1000000);
     reset_exposure_calibration();
+    return fps;
 }
 
 
@@ -408,7 +409,6 @@ void himax_update_exposure(struct pi_device *camera)
     }
     printf("=> median %d\n", m_dgain);
     printf("-----------------------------\n");
-
 #endif
     LOG("Disable AE control after %d steps and fix registers:\n"
         "\t\t- INTEGRATION:  %d\n"

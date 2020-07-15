@@ -1,6 +1,6 @@
 #include "pmsis.h"
 #include "led.h"
-#include "common.h"
+#include "logging.h"
 
 #define LED_GPIO 2
 

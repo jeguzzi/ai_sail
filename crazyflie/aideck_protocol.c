@@ -1,5 +1,5 @@
 /*
-  This file was autogenerate on 07/14/20 from the following Python config:
+  This file was autogenerate on 07/15/20 from the following Python config:
 
   from base import config, c_uint8, c_uint16  # type: ignore
 
@@ -28,7 +28,15 @@
 #define HEADER_LENGTH 4
 #define BUFFER_LENGTH 13
 #define VERBOSE_RX
-//#define VERBOSE_TX
+#define VERBOSE_TX
+
+#ifdef VERBOSE_RX
+static uint8_t verbose_rx = 0;
+#endif
+#ifdef VERBOSE_TX
+static uint8_t verbose_tx = 0;
+#endif
+
 #define REQUEST_TIMEOUT 2000 // number of milliseconds to wait for a confirmation
 #define INPUT_NUMBER 2
 #define AIDECK_HAS_CONFIGS
@@ -56,8 +64,7 @@ typedef struct {
 } __attribute__((packed)) camera_t;
 
 
-void log_camera(camera_t *value)
-{
+void log_camera(camera_t *value) {
   DEBUG_PRINT("marginTop=%u, marginRight=%u, marginBottom=%u, marginLeft=%u, format=%u, step=%u, target_value=%u, ae=%u, fps=%u\n", value->marginTop,value->marginRight,value->marginBottom,value->marginLeft,value->format,value->step,value->target_value,value->ae,value->fps);
 }
 
@@ -72,20 +79,21 @@ static void __camera_cb(void *buffer)
   camera_t *value = (camera_t *)buffer;
   __camera__config.value = *value;
 #ifdef VERBOSE_RX
-  uint32_t now = T2M(xTaskGetTickCount());
-  if(__camera__config.request_time && memcmp(&(__camera__config.value), &(__camera__config.dvalue), sizeof(camera_t)))
-  {
-    DEBUG_PRINT("[WARNING] GAP has set camera config after %ld ms\n", now - __camera__config.request_time);
-    log_camera(&(__camera__config.value));
-    DEBUG_PRINT("to a different value than the one requested\n");
-    log_camera(&(__camera__config.dvalue));
-  }
-  else{
-    if(__camera__config.request_time)
-      DEBUG_PRINT("GAP has set camera config after %ld ms to\n", now - __camera__config.request_time);
-    else
-      DEBUG_PRINT("GAP has set camera config to\n");
-    log_camera(&(__camera__config.value));
+  if(verbose_rx) {
+    uint32_t now = T2M(xTaskGetTickCount());
+    if(__camera__config.request_time && memcmp(&(__camera__config.value), &(__camera__config.dvalue), sizeof(camera_t))) {
+      DEBUG_PRINT("[WARNING] GAP has set camera config after %ld ms\n", now - __camera__config.request_time);
+      log_camera(&(__camera__config.value));
+      DEBUG_PRINT("to a different value than the one requested\n");
+      log_camera(&(__camera__config.dvalue));
+    }
+    else {
+      if(__camera__config.request_time)
+        DEBUG_PRINT("GAP has set camera config after %ld ms to\n", now - __camera__config.request_time);
+      else
+        DEBUG_PRINT("GAP has set camera config to\n");
+      log_camera(&(__camera__config.value));
+    }
   }
 #endif // VERBOSE_RX
   __camera__config.dvalue = __camera__config.value;
@@ -101,8 +109,7 @@ typedef struct {
 } __attribute__((packed)) stream_t;
 
 
-void log_stream(stream_t *value)
-{
+void log_stream(stream_t *value) {
   DEBUG_PRINT("on=%u, format=%u, transport=%u\n", value->on,value->format,value->transport);
 }
 
@@ -117,20 +124,21 @@ static void __stream_cb(void *buffer)
   stream_t *value = (stream_t *)buffer;
   __stream__config.value = *value;
 #ifdef VERBOSE_RX
-  uint32_t now = T2M(xTaskGetTickCount());
-  if(__stream__config.request_time && memcmp(&(__stream__config.value), &(__stream__config.dvalue), sizeof(stream_t)))
-  {
-    DEBUG_PRINT("[WARNING] GAP has set stream config after %ld ms\n", now - __stream__config.request_time);
-    log_stream(&(__stream__config.value));
-    DEBUG_PRINT("to a different value than the one requested\n");
-    log_stream(&(__stream__config.dvalue));
-  }
-  else{
-    if(__stream__config.request_time)
-      DEBUG_PRINT("GAP has set stream config after %ld ms to\n", now - __stream__config.request_time);
-    else
-      DEBUG_PRINT("GAP has set stream config to\n");
-    log_stream(&(__stream__config.value));
+  if(verbose_rx) {
+    uint32_t now = T2M(xTaskGetTickCount());
+    if(__stream__config.request_time && memcmp(&(__stream__config.value), &(__stream__config.dvalue), sizeof(stream_t))) {
+      DEBUG_PRINT("[WARNING] GAP has set stream config after %ld ms\n", now - __stream__config.request_time);
+      log_stream(&(__stream__config.value));
+      DEBUG_PRINT("to a different value than the one requested\n");
+      log_stream(&(__stream__config.dvalue));
+    }
+    else {
+      if(__stream__config.request_time)
+        DEBUG_PRINT("GAP has set stream config after %ld ms to\n", now - __stream__config.request_time);
+      else
+        DEBUG_PRINT("GAP has set stream config to\n");
+      log_stream(&(__stream__config.value));
+    }
   }
 #endif // VERBOSE_RX
   __stream__config.dvalue = __stream__config.value;
@@ -138,7 +146,7 @@ static void __stream_cb(void *buffer)
 }
 
 
-static input_t inputs[INPUT_NUMBER]  = {
+static input_t inputs[INPUT_NUMBER] = {
   { .header = "!CAM", .callback = __camera_cb, .size = sizeof(camera_t) },
   { .header = "!STR", .callback = __stream_cb, .size = sizeof(stream_t) }
 };
@@ -146,22 +154,23 @@ static input_t inputs[INPUT_NUMBER]  = {
 
 
 
-void update_config(void *data)
-{
-uint32_t now = T2M(xTaskGetTickCount());
-  if(__camera__config.request_time)
-  {
+void update_config(void *data) {
+  uint32_t now = T2M(xTaskGetTickCount());
+  if(__camera__config.request_time) {
     if(now - __camera__config.request_time < REQUEST_TIMEOUT) return;
   #ifdef VERBOSE_RX
-    DEBUG_PRINT("[WARNING] Request to GAP to update camera config has timed out after %ld ms\n", now - __camera__config.request_time);
+    if(verbose_rx) {
+      DEBUG_PRINT("[WARNING] Request to GAP to update camera config has timed out after %ld ms\n", now - __camera__config.request_time);
+    }
   #endif // VERBOSE_RX
     __camera__config.request_time = 0;
   }
-  if(memcmp(&(__camera__config.value), &(__camera__config.dvalue), sizeof(camera_t)))
-  {
+  if(memcmp(&(__camera__config.value), &(__camera__config.dvalue), sizeof(camera_t))) {
   #ifdef VERBOSE_TX
-    DEBUG_PRINT("Will request GAP to update camera config\n");
-    log_camera(&(__camera__config.value));
+    if(verbose_tx) {
+      DEBUG_PRINT("Will request GAP to update camera config\n");
+      log_camera(&(__camera__config.value));
+    }
   #endif // VERBOSE_TX
     __camera__config.request_time = T2M(xTaskGetTickCount());
     uart1SendData(HEADER_LENGTH, (uint8_t *) __camera__config.header);
@@ -170,19 +179,21 @@ uint32_t now = T2M(xTaskGetTickCount());
     return;
   }
 
-  if(__stream__config.request_time)
-  {
+  if(__stream__config.request_time) {
     if(now - __stream__config.request_time < REQUEST_TIMEOUT) return;
   #ifdef VERBOSE_RX
-    DEBUG_PRINT("[WARNING] Request to GAP to update stream config has timed out after %ld ms\n", now - __stream__config.request_time);
+    if(verbose_rx) {
+      DEBUG_PRINT("[WARNING] Request to GAP to update stream config has timed out after %ld ms\n", now - __stream__config.request_time);
+    }
   #endif // VERBOSE_RX
     __stream__config.request_time = 0;
   }
-  if(memcmp(&(__stream__config.value), &(__stream__config.dvalue), sizeof(stream_t)))
-  {
+  if(memcmp(&(__stream__config.value), &(__stream__config.dvalue), sizeof(stream_t))) {
   #ifdef VERBOSE_TX
-    DEBUG_PRINT("Will request GAP to update stream config\n");
-    log_stream(&(__stream__config.value));
+    if(verbose_tx) {
+      DEBUG_PRINT("Will request GAP to update stream config\n");
+      log_stream(&(__stream__config.value));
+    }
   #endif // VERBOSE_TX
     __stream__config.request_time = T2M(xTaskGetTickCount());
     uart1SendData(HEADER_LENGTH, (uint8_t *) __stream__config.header);
@@ -192,8 +203,6 @@ uint32_t now = T2M(xTaskGetTickCount());
   }
 
 }
-
-
 PARAM_GROUP_START(aideck_HIMAX)
 PARAM_ADD(PARAM_UINT16, marginTop, &(__camera__config.value.marginTop))
 PARAM_ADD(PARAM_UINT16, marginRight, &(__camera__config.value.marginRight))
@@ -212,3 +221,13 @@ PARAM_ADD(PARAM_UINT8, format, &(__stream__config.value.format))
 PARAM_ADD(PARAM_UINT8, transport, &(__stream__config.value.transport))
 PARAM_GROUP_STOP(aideck_stream)
 
+#if defined(VERBOSE_TX) || defined(VERBOSE_RX)
+PARAM_GROUP_START(aideck_verbose)
+#ifdef VERBOSE_RX
+PARAM_ADD(PARAM_UINT8, rx, &verbose_rx)
+#endif
+#ifdef VERBOSE_TX
+PARAM_ADD(PARAM_UINT8, tx, &verbose_tx)
+#endif
+PARAM_GROUP_STOP(aideck_aideck_verbose)
+#endif

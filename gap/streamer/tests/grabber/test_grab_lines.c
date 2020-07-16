@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
+
 #include "pmsis.h"
-#include "math.h"
 #include "bsp/camera.h"
+
 #include "himax_utils.h"
-#include "common.h"
+#include "logging.h"
 
 static struct pi_device camera;
 static int volatile number_of_frames = 0;

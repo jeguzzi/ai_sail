@@ -1,4 +1,4 @@
-#include "stdio.h"
+#include <stdio.h>
 
 #include "pmsis.h"
 #include "bsp/camera.h"
@@ -7,7 +7,7 @@
 
 #include "camera.h"
 #include "nina.h"
-#include "common.h"
+#include "logging.h"
 
 #define SEQ 0
 #define PIPE 1

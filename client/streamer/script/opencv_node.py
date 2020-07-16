@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# This is an extension of the example provided by bitcraze:
-# - added raw format
-# - added color
-# - added pipe as transport
+# Author: Jerome Guzzi
+# Licence: MIT
+# This is an extension of the [example provided by Bitcraze]
+# (https://github.com/bitcraze/AIdeck_examples/blob/master/NINA/viewer.py),
+# with the following additions
+# - raw encoding
+# - color
+# - named pipe as transport
+# - ability to reconnect to socket
+# - statistics about recevied frames
+# and using opencv instead of gtk to display the image
 
 import argparse
 import cv2

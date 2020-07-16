@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Author: Jerome Guzzi
+# Licence: MIT
+#
+# A library that provide helper decorators @config, @input to define specifications
+
 import ctypes
 from ctypes import (c_char, c_float, c_int8, c_int16, c_int32, c_uint8,
                     c_uint16, c_uint32, Structure)

@@ -1,7 +1,15 @@
-# This is an extension of the example provided by bitcraze:
-# - added raw format
-# - added color
-# - added pipe as transport
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Author: Jerome Guzzi
+# Licence: MIT
+# This is an library extension of the [example provided by Bitcraze]
+# (https://github.com/bitcraze/AIdeck_examples/blob/master/NINA/viewer.py),
+# with the following additions
+# - raw encoding
+# - color
+# - named pipe as transport
+# - ability to reconnect to socket
+# - statistics about recevied frames
 
 import fcntl
 import os

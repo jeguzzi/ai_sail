@@ -1,12 +1,24 @@
-import jinja2
-from typing import Type
-from base import Base, to_c, to_cf, to_format, c_str, c_float
-import os
-from typing import Tuple
-from datetime import datetime as dt
-import importlib.util
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Author: Jerome Guzzi
+# Licence: MIT
+#
+# This script generate C code for GAP and Crazyflie that implements an UART protocol based on
+# the given specifications. Call it like
+# python3 generate.py <path_to_the_speficication>
+# Some specifications are provided as examples.
+
 import argparse
 import ctypes
+import importlib.util
+import os
+from datetime import datetime as dt
+from typing import Tuple, Type
+
+import jinja2
+
+from base import Base, c_str, to_c, to_cf, to_format
+from ctypes import c_float
 
 
 def _f(item: Tuple[str, Type]) -> str:

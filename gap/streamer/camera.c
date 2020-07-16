@@ -291,11 +291,14 @@ void start_camera_loop(bool wait_external, bool concurrent) {
 }
 
 static void external_event_async(void * arg) {
+  unsigned char * image = (unsigned char *) arg;
   if(should_wait_for_external) {
     waiting |= external;
+    image_event = (image_event_t){.image=image, .release_task=pi_task_callback(&external_task, enqueue_capture, &external_task)};
   }
-  unsigned char * image = (unsigned char *) arg;
-  image_event = (image_event_t){.image=image, .release_task=pi_task_callback(&external_task, enqueue_capture, &external_task)};
+  else{
+    image_event = (image_event_t){.image=image, .release_task=NULL};
+  }
 }
 
 static void end_of_frame(void *arg) {
@@ -315,7 +318,6 @@ static void end_of_frame(void *arg) {
   if(!image_acquisition.config.ae)
     himax_update_exposure(&camera);
   unsigned char * image = crop(camera_buffer);
-  int wait_streaming = 0;
   if(image_streaming.config.on && image_streaming.streamer) {
     image_streaming.buffer.data = image;
     pi_task_t *t;

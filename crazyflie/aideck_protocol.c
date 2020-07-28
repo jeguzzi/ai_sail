@@ -1,5 +1,5 @@
 /*
-  This file was autogenerate on 07/15/20 from the following Python config:
+  This file was autogenerate on 07/28/20 from the following Python config:
 
   from base import config, c_uint8, c_uint16  # type: ignore
 
@@ -25,10 +25,10 @@
 
 */
 
+#include "aideck_protocol.h"
+
 #define HEADER_LENGTH 4
 #define BUFFER_LENGTH 13
-#define VERBOSE_RX
-#define VERBOSE_TX
 
 #ifdef VERBOSE_RX
 static uint8_t verbose_rx = 0;

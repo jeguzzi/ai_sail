@@ -80,8 +80,14 @@ def main(config_path: str) -> None:
     os.makedirs(cf_build_folder, exist_ok=True)
     gap_build_folder = os.path.join(build_folder, 'gap')
     os.makedirs(gap_build_folder, exist_ok=True)
-    template = e.get_template('crazyflie.aideck_p.h.j2')
+    template = e.get_template('crazyflie.aideck_protocol.c.j2')
     with open(os.path.join(cf_build_folder, 'aideck_protocol.c'), 'w') as f:
+        f.write(template.render(
+            configs=configurations, inputs=inputs,
+            header_length=header_length, buffer_length=buffer_length,
+            source=source, date=date))
+    template = e.get_template('crazyflie.aideck_protocol.h.j2')
+    with open(os.path.join(cf_build_folder, 'aideck_protocol.h'), 'w') as f:
         f.write(template.render(
             configs=configurations, inputs=inputs,
             header_length=header_length, buffer_length=buffer_length,

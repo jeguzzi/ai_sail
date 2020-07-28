@@ -5,10 +5,10 @@
   {{source | indent(2)}}
 */
 
+#include "aideck_protocol.h"
+
 #define HEADER_LENGTH {{header_length}}
 #define BUFFER_LENGTH {{buffer_length}}
-#define VERBOSE_RX
-#define VERBOSE_TX
 
 #ifdef VERBOSE_RX
 static uint8_t verbose_rx = 0;
@@ -41,10 +41,7 @@ typedef struct {
 
 {%- for data_t in inputs %}
 // --- input {{data_t.name}}
-{{ typedef(data_t) }}
 {{ log(data_t) }}
-// To be implemented
-static void {{data_t.set_cb}}({{data_t.typename}} *);
 {{- cb(data_t) -}}
 {% endfor %}
 {%if inputs or configs %}

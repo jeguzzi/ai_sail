@@ -1,0 +1,16 @@
+{%- from "macros.j2" import typedef  -%}
+/*
+  This file was autogenerate on {{date}} from the following Python config:
+
+  {{source | indent(2)}}
+*/
+
+#define VERBOSE_RX
+#define VERBOSE_TX
+
+{%- for data_t in inputs %}
+// --- input {{data_t.name}}
+{{ typedef(data_t) }}
+// To be implemented
+void {{data_t.set_cb}}({{data_t.typename}} *);
+{% endfor %}

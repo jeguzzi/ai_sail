@@ -53,7 +53,7 @@ PARAM_GROUP_STOP(my_config)
 
 An input is a structured message from the GAP to the Crazyflie. For every input, the user has to implement a callback, which get triggered every time a new message is received. For the above example, the user has to define the callback
 ```
-static void my_input_callback(my_input_t *);
+void my_input_callback(my_input_t *);
 ```
 which is defined in the generate file.
 
@@ -61,7 +61,7 @@ which is defined in the generate file.
 ## Building
 
 The generated files should be included in the building tree:
-- files in `build/crazyflie/` have to be copied in `<crazyflie_firmware>/src/deck/driver/src`
+- implementation and header files in `build/crazyflie/` have to be copied in `<crazyflie_firmware>/src/deck/driver/src` and `<crazyflie_firmware>/src/deck/driver/interface` respectively
 - files in `build/gap` in `<gap_app>/src`
 
 The generate files are not meant to be modified or compiled as standalone file, but included in other files that implement the rest of the UART communication:

@@ -17,13 +17,26 @@ static PI_L2 uint8_t rx_buffer[BUFFER_LENGTH];
 static pi_task_t task;
 {% endif %}
 
+#ifdef ASYNC_TX
+static pi_task_t send_header_task;
+static pi_task_t send_payload_task;
+static void send(unsigned char * header, uint8_t * data, size_t size) {
+  pi_uart_write_async(&device, header, HEADER_LENGTH, &send_header_task);
+  pi_uart_write_async(&device, data, size, &send_payload_task);
+}
+#else
+static void send(unsigned char * header, uint8_t * data, size_t size) {
+  pi_uart_write(&device, header, HEADER_LENGTH);
+  pi_uart_write(&device, data, size);
+}
+#endif
+
 {%- for data_t in configs + inputs %}
 void send_{{data_t.name}}({{data_t.typename}} *config)
 {
   if(!initialized) return;
 #ifdef {{data_t.name | upper}}_HEADER
-  pi_uart_write(&device, {{data_t.name | upper}}_HEADER, HEADER_LENGTH);
-  pi_uart_write(&device, (uint8_t *)config, sizeof({{data_t.typename}}));
+  send({{data_t.name | upper}}_HEADER, (uint8_t *)config, sizeof({{data_t.typename}}));
 #endif
 }
 {% endfor %}
@@ -37,7 +50,7 @@ static void received_header(void *arg) {
       LOG_ERROR("Failed to read {{data_t.name}} config\n");
     }
     else {
-      set_{{data_t.name}}(({{data_t.typename}} *)rx_buffer);
+      set_{{data_t.name}}(({{data_t.typename}} *) rx_buffer);
     }
     goto done;
   }

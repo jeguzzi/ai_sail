@@ -9,6 +9,8 @@
 #define __UART_PROTOCOL_H__
 #include <stdint.h>
 
+#define ASYNC_TX
+
 {%- for data_t in configs %}
 {{ typedef(data_t) }}
 #define {{data_t.name | upper}}_HEADER "{{data_t.header_value | c_str}}"

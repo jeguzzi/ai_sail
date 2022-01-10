@@ -143,7 +143,7 @@ static int32_t pi_camera_reg_set16(struct pi_device *camera, uint32_t reg_addr_l
 {
   uint8_t *v = (uint8_t *) value;
   pi_camera_reg_set(camera, reg_addr_l, v);
-  return pi_camera_reg_get(camera, reg_addr_h, v+1);
+  return pi_camera_reg_set(camera, reg_addr_h, v+1);
 }
 
 static int min_line_length(uint8_t format){
